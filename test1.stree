@@ -1,0 +1,18 @@
+[abc]
+# comment
+a = 1: x = 10
+a = 5
+  # comment 2
+  b.c.d = 1: 20
+  b.c.d = 10
+    : 30
+    : x = 20
+# q
+[qqq]
+a = 5
+else: 40
+  : x = 50
+
+[id_type]
+id_type in [63,65,67]: 1
+id_type in [11,12,13]: 2

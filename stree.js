@@ -6,6 +6,9 @@
 	}
 	STree.prototype.readFrom = function(path) {
 		var res = fs.readFileSync(path, 'utf-8');
+		if (!res) {
+			throw new Error("Couldn't read file " + path);
+		}
 		this.load(res);
 		return this;
 	}
@@ -18,6 +21,18 @@
 	STree.prototype.getTrees = function() {
 		if (!this.trees) { return []; }
 		return Object.keys(this.trees);
+	}
+	STree.prototype.value = function(name, inobj, copy) {
+		if (Array.prototype.slice.call(arguments).length) {
+			this.apply(name, inobj, copy);
+		}
+		return this.retval;
+	}
+	STree.prototype.object = function(name, inobj, copy) {
+		if (Array.prototype.slice.call(arguments).length) {
+			this.apply(name, inobj, copy);
+		}
+		return this.retobj;
 	}
 	STree.prototype.apply = function(name, inobj, copy) {
 		var obj, tree;
@@ -51,7 +66,7 @@
 		if (Object.keys(this.retobj).length && typeof this.retval === "undefined") {
 			return this.retobj;
 		}
-		return this.retval;
+		return this;
 	}
 	STree.prototype.evaluate = function(obj, tree) {
 		var i, j, rule, objval, match = false;
@@ -81,28 +96,53 @@
 	}
 	STree.prototype.applyRule = function(obj, rule, value) {
 		var j;
-		if (typeof value !== "undefined") {
-			this.retval = value;
-		}
+		// if (typeof value !== "undefined") {
+		// 	this.retval = value;
+		// }
 		if (rule.apply && rule.apply.length) {
 			for (j = 0; j < rule.apply.length; j++) {
 				if (rule.apply[j].name) {
 					this.retobj[ rule.apply[j].name ] = rule.apply[j].val;
 				} else {
+					// console.log('qqq');
 					this.retval = rule.apply[j].val;
 				}
 			}
 		}
 		if (rule.children && rule.children.length) {
+			// console.log('evaluate children');
 			this.retval = this.evaluate(obj, rule.children);
 		}
 	}
 	STree.prototype.applyOperator = function(a, op, b) {
 		if (op === '=') {
 			return a == b;
+		} else if (op === '!=') {
+			return a != b;
+		} else if (op === '>') {
+			return a > b;
+		} else if (op === '>=') {
+			return a >= b;
+		} else if (op === '<') {
+			return a < b;
+		} else if (op === '<=') {
+			return a <= b;
+		} else if (op === 'contains') {
+			return a.toString().indexOf(b) >= 0;
+		} else if (op === 'ncontains') {
+			return a.toString().indexOf(b) < 0;
+		} else if (op === 'icontains') {
+			return a.toString().toLowerCase().indexOf(b.toString().toLowerCase()) >= 0;
+		} else if (['nicontains', 'incontains'].indexOf(op) >= 0) {
+			return a.toString().toLowerCase().indexOf(b.toString().toLowerCase()) < 0;
 		} else if (op === 'in') {
-			var list = eval(b); // this should be array
+			var list = eval(b); // this should be Javascript array
 			return list.indexOf(a) >= 0;
+		} else if (op === 'nin') {
+			var list = eval(b); // this should be Javascript array
+			return list.indexOf(a) < 0;
+		} else {
+			throw new Error("Unknown operator '" + op + "'");
 		}
 	}
 	STree.prototype.resolve = function(name, obj) {
@@ -192,6 +232,9 @@
 		} else {
 			throw new Error("Failed to parse line: '" + line + "'");
 		}
+		// if (cur.op && (['=', 'in'].indexOf(cur.op.toLowerCase()) < 0)) {
+			// throw new Error("Unknown operator '" + cur.op + "' in line '" + line + "'");
+		// }
 		// console.log('pstl', cur.prefix, JSON.stringify(line));
 		return cur;
 	}

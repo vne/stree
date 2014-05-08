@@ -42,6 +42,9 @@
 			name = undefined;
 		}
 		obj = inobj;
+		if (typeof obj === "undefined") {
+			return;
+		}
 		if (!this.trees) {
 			throw new Error("Couldn't apply stree without a tree");
 		}
@@ -85,7 +88,7 @@
 				}
 			}
 			if (!match) {
-				// console.log('  no match');
+				// console.log('  no match', objval, rule.val);
 				continue;
 			}
 			// console.log('  MATCH');
@@ -141,6 +144,9 @@
 		} else if (op === 'nin') {
 			var list = eval(b); // this should be Javascript array
 			return list.indexOf(a) < 0;
+		} else if (op === '~') {
+			var regex = eval(b);
+			return regex.test(a);
 		} else {
 			throw new Error("Unknown operator '" + op + "'");
 		}
@@ -148,28 +154,38 @@
 	STree.prototype.resolve = function(name, obj) {
 		if (name.indexOf('.') <= 0) { return obj[name]; }
 		var parts = name.split('.'),
-			i, o = obj, p, idx = -1, re;
+			i, o = obj, p, idx = -1, re, array_idx = false;
 		for (i in parts) {
 			idx = -1;
 			p = parts[i];
-			if (re = /(.+)\[(\d+)\]/.exec(p)) {
-				idx = re[2];
+			if (re = /(.+)\[([\-\d]+)\]/.exec(p)) {
+				idx = parseInt(re[2], 10);
 				p = re[1];
+				array_idx = true;
 			}
 			// console.log('      resolve', i, p, o[p]);
 			if (typeof o[p] !== "undefined") {
 				o = o[p];
-				if ((idx >= 0) && o && o.constructor === Array) {
-					if (o.length > idx) {
-						o = o[idx];
+				if (array_idx && o && o.constructor === Array) {
+					// console.log('negative index', o.length, idx, name, o);
+					if (idx >= 0) {
+						if (o.length > idx) {
+							o = o[idx];
+						}
+					} else if (idx < 0) {
+						if (o.length > -idx) {
+							o = o[o.length + idx];
+						}
 					} else {
 						return;
 					}
 				}
+				array_idx = false;
 			} else {
 				return;
 			}
 		}
+		// console.log('return o', o);
 		return o;
 	}
 

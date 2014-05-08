@@ -65,19 +65,19 @@
 		}
 		this.retobj = {};
 		this.retval = undefined;
-		var r = this.evaluate(obj, tree);
+		this.evaluate(obj, tree);
 		if (Object.keys(this.retobj).length && typeof this.retval === "undefined") {
 			return this.retobj;
 		}
 		return this;
 	}
 	STree.prototype.evaluate = function(obj, tree) {
-		var i, j, rule, objval, match = false;
+		var i, rule, objval, match = false;
 		for (i = 0; i < tree.length; i++) {
 			match = false;
 			rule = tree[i];
 			if (rule.else) {
-				this.applyRule(obj, rule, rule.val);
+				this.applyRule(obj, rule);
 				break;
 			}
 			objval = this.resolve(rule.name, obj);
@@ -92,12 +92,12 @@
 				continue;
 			}
 			// console.log('  MATCH');
-			this.applyRule(obj, rule, objval);
+			this.applyRule(obj, rule);
 			break;
 		}
 		return this.retval;
 	}
-	STree.prototype.applyRule = function(obj, rule, value) {
+	STree.prototype.applyRule = function(obj, rule) {
 		var j;
 		// if (typeof value !== "undefined") {
 		// 	this.retval = value;

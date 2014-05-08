@@ -27,3 +27,15 @@ a <= 0: 6
 b contains love: 7
 b icontains LOvE: 8
 b ncontains love: 9
+
+[negate]
+a in [1,2,3]: 1
+a nin [1,2,3]: 2
+
+[paths]
+obj.arr[2].x = 5: 1
+obj.arr[-1].x = 4: 2
+
+[regex]
+a ~ /^\d+/: 1
+a ~ /^\w+/: 2

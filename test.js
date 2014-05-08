@@ -37,6 +37,11 @@ var testObj2 = {
 };
 
 var s = new STree();
+try {
+	s.readFrom('test1.stree');
+} catch(e) {
+	console.log("STree test data file couldn't be read");
+}
 
 describe("STree library", function() {
 	it('should read stree data files', function() {
@@ -45,10 +50,10 @@ describe("STree library", function() {
 		}, Error);
 	});
 	it('should read all the trees from data file', function() {
-		assert.equal(s.getTrees().length, 3);
+		assert.equal(s.getTrees().length, 6);
 	});
 	it('should provide names of the trees', function() {
-		assert.deepEqual(s.getTrees(), ['abc', 'qqq', 'operators']);
+		assert.deepEqual(s.getTrees(), ['abc', 'qqq', 'operators', 'negate', 'paths', 'regex']);
 	});
 	it('should throw exception on non-stree data files', function() {
 		assert.throws(function() {
@@ -60,6 +65,14 @@ describe("STree library", function() {
 			var s2 = new STree().readFrom('test4.stree').value({ a: 5 });
 		}, /Unknown operator/);
 		// console.log(JSON.stringify(s2.trees['default'], undefined, 4));
+	});
+	it('should return undefined when object is undefined', function() {
+		assert.equal(s.value('abc', undefined), undefined);
+	});
+	it('should evaluate "else" when a non-object argument is passed', function() {
+		assert.equal(s.value('abc', [1,2,3]), 100);
+		assert.equal(s.value('abc', "abc"), 100);
+		assert.equal(s.value('abc', function() {}), 100);
 	});
 });
 describe("STree should correctly evaluate", function() {
@@ -104,6 +117,30 @@ describe("STree should correctly evaluate", function() {
 		var s2 = new STree().readFrom('test2.stree');
 		assert.equal(s2.value({ a: 1 }), 2);
 	});
+	it('paths with array indexes > 0', function() {
+		assert.equal(s.value('paths', {
+			obj: {
+				arr: [
+					{ x: 1 },
+					{ x: 3 },
+					{ x: 5 },
+					{ x: 7 }
+				]
+			}
+		}), 1);
+	});
+	it('paths with array indexes < 0', function() {
+		assert.equal(s.value('paths', {
+			obj: {
+				arr: [
+					{ x: 1 },
+					{ x: 2 },
+					{ x: 3 },
+					{ x: 4 }
+				]
+			}
+		}), 2);
+	});
 });
 describe("STree operator", function() {
 	it("'in' should evaluate correctly", function() {
@@ -131,7 +168,16 @@ describe("STree operator", function() {
 	it("'icontains' should evaluate correctly", function() {
 		assert.equal(s.value('operators', { b: "all you need is lOvE" }), 8);
 	});
-	// it("'ncontains' should evaluate correctly", function() {
-	// 	assert.equal(s.value('operators', { b: "all you need is dove" }), 9);
-	// });
+	it("'nin' should evaluate correctly - 1", function() {
+		assert.equal(s.value('negate', { a: 1 }), 1);
+	});
+	it("'nin' should evaluate correctly - 2", function() {
+		assert.equal(s.value('negate', { a: 4 }), 2);
+	});
+	it("'~' should evaluate correctly", function() {
+		assert.equal(s.value('regex', { a: 5 }), 1);
+	});
+	it("'~' should evaluate correctly", function() {
+		assert.equal(s.value('regex', { a: "abc" }), 2);
+	});
 });

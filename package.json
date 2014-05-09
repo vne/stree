@@ -1,6 +1,6 @@
 {
-  "name": "stree",
-  "version": "0.0.2",
+  "name": "sltree",
+  "version": "0.0.3",
   "description": "A replacement for multiple IFs",
   "main": "stree.js",
   "scripts": {

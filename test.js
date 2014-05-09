@@ -106,7 +106,7 @@ describe("STree should correctly evaluate", function() {
 				}
 			}
 		}).value(), 30);
-		assert.deepEqual(s.retobj, { x: 20 });
+		assert.deepEqual(s.retobj, { x: 20, y: 200 });
 	});
 	it('"else" conditions with values on next lines', function() {
 		assert.deepEqual(s.value('qqq', {
@@ -140,6 +140,19 @@ describe("STree should correctly evaluate", function() {
 				]
 			}
 		}), 2);
+	});
+	it('nested assignments', function() {
+		assert.deepEqual(s.object('abc', {
+			a: 5,
+			b: {
+				c: {
+					d: 10
+				}
+			}
+		}), {
+			x: 20,
+			y: 200
+		});
 	});
 });
 describe("STree operator", function() {

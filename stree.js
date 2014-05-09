@@ -60,6 +60,7 @@
 		} else {
 			throw new Error("Either no default tree exists and no tree name specified");
 		}
+		// console.log(JSON.stringify(tree, undefined, 4));
 		if (copy) {
 			obj = JSON.parse(JSON.stringify(inobj));
 		}
@@ -91,7 +92,7 @@
 				// console.log('  no match', objval, rule.val);
 				continue;
 			}
-			// console.log('  MATCH');
+			// console.log('  MATCH', JSON.stringify(rule, undefined, 4));
 			this.applyRule(obj, rule);
 			break;
 		}
@@ -105,6 +106,7 @@
 		if (rule.apply && rule.apply.length) {
 			for (j = 0; j < rule.apply.length; j++) {
 				if (rule.apply[j].name) {
+					// console.log('retobj', rule.apply[j].name, rule.apply[j].val);
 					this.retobj[ rule.apply[j].name ] = rule.apply[j].val;
 				} else {
 					// console.log('qqq');
@@ -203,7 +205,7 @@
 	}
 
 	function parseSTreeLine(line) {
-		var is_resultLine = /^(\s*):(.+)/,
+		var is_resultLine = /^(\s*):(.+)$/,
 			has_result = /^(\s*)([^:\s][^\s]*)\s+(\S*)([^:\n]+)(:.+)/i,
 			no_result =  /^(\s*)([^:\s][^\s]*)\s+(\S*)([^:\n]+)/i,
 			re_elseval = /^(\s*)else\s*(:.+)/i,
@@ -222,7 +224,9 @@
 			} else {
 				cur.resval = re[2].trim();
 			}
+			// console.log('pstl:resultLine', line, cur);
 		} else if (re = re_elseval.exec(line)) {
+			// console.log('pstl:elseval', line);
 			cur = parseSTreeLine(re[2]);
 			cur.type = 2;
 			cur.prefix = re[1].length;
@@ -233,6 +237,7 @@
 			cur.else = true;
 		} else if (re = has_result.exec(line)) {
 			// console.log('has_result', re);
+			// console.log('pstl:has_result', line);
 			cur = parseSTreeLine(re[5]);
 			cur.type = 0;
 			cur.prefix = re[1].length;
@@ -240,6 +245,7 @@
 			cur.op = re[3].trim();
 			cur.varval = re[4].trim();
 		} else if (re = no_result.exec(line)) {
+			// console.log('pstl:no_result', line);
 			cur.type = 0;
 			cur.prefix = re[1].length;
 			cur.varname = re[2].trim();
@@ -285,6 +291,7 @@
 			res[i] = processSTreeLines(treelines[i], treelines[i][0].prefix);
 			// console.log('treeline', i, treelines[i], res[i]);
 		}
+		// console.log('abc', JSON.stringify(res['abc'], undefined, 4));
 		// return processSTreeLines(lines, lines[0].prefix);
 		return res;
 	}
@@ -302,13 +309,13 @@
 		}
 		for (i = si; i < len; i++) {
 			line = lines[i];
-			// console.log('pstl', i, pfx, prefix, JSON.stringify(line));
+			// console.log('pstls', i, pfx, prefix, JSON.stringify(line));
 			if (line.prefix === prefix) {
 				// if (!line.varname && !cur.varname) {
 				// 	throw new Error("Bad syntax in line " + (i+1) + ": results before conditions");
 				// }
 				if (line.varname) {
-					if (cur.name) {
+					if (cur.name || cur.apply.length) {
 						// console.log('    push 1');
 						tree.push(cur);
 					}
@@ -343,6 +350,7 @@
 			} else if (line.prefix > prefix) {
 				nopt = { i: i };
 				sub = processSTreeLines(lines, line.prefix, nopt);
+				// console.log('sub', JSON.stringify(sub, null, 4));
 				i = nopt.i;
 				for (j = 0; j < sub.length; j++) {
 					if (sub[j].name) {
